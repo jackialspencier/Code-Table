@@ -1,0 +1,2 @@
+Empty())
+    //     cout << road.pop();

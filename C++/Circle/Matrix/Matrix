@@ -1,0 +1,81 @@
+#ifndef MATRIX_H_
+#define MATRIX_H_
+
+#include <iostream>
+class Matrix{
+private:
+    int row;
+    int col;
+    int *p;
+public:
+    Matrix();
+    Matrix(int m, int n);
+    ~Matrix();
+    Matrix operator+(const Matrix & b) const;
+    Matrix operator=(const Matrix & m) const;
+    friend std::ostream & operator<<(std::ostream & os, const Matrix & m);
+    friend std::istream & operator>>(std::istream & oi, const Matrix & m);
+    int operator()(int r, int c) const;
+};
+
+#endif
+
+Matrix::Matrix()
+{
+    row = col = 0;
+    p = nullptr;
+}
+
+Matrix::Matrix(int m, int n)
+{
+    row = m;
+    col = n;
+    p = new int[m*n]{0};
+}
+
+ Matrix::~Matrix()
+{
+    delete [] p;
+}
+
+Matrix Matrix::operator+(const Matrix & b) const
+{
+    Matrix ans(row, col);
+    for (int i = 0; i < row * col; i++)
+        ans.p[i] = p[i] + b.p[i];
+    return ans;
+}
+
+Matrix & Matrix::operator=(const Matrix & m) const
+{
+    for (int i = 0; i < row * col; i++)
+        p[i] = m.p[i];
+    return *this;
+}
+
+std::ostream & operator<<(std::ostream & os, const Matrix & m)
+{
+    for (int i = 0; i < m.row * m.col; i++)
+    {
+        os << m.p[i];
+        if (i % m.col)
+            os << endl;
+        else
+            os << " ";
+    }
+    return os;
+}
+
+friend std::istream & operator>>(std::istream & is, const Matrix & m)
+{
+    for (int i = 0; i < m.row * m.col; i++)
+    {
+        is >> m.p[i]
+    }
+    return is;
+}
+
+int Date::operator()(int r, int c) const
+{
+    return p[r * col + c ];
+}

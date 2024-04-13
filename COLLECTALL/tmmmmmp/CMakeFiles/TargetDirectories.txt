@@ -1,0 +1,3 @@
+/home/jason/Code-Table/tmmmmmp/CMakeFiles/Demo.dir
+/home/jason/Code-Table/tmmmmmp/CMakeFiles/edit_cache.dir
+/home/jason/Code-Table/tmmmmmp/CMakeFiles/rebuild_cache.dir
