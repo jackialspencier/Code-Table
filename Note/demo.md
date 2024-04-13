@@ -11,10 +11,7 @@
 
 <br>
 
-大O表示法的性质
-1. $f=O(g)\iff k\cdot f=O(g)$
-2. $f_1=O(g_1) \land f_2=O(g_2) \implies f_1+f_2=O(\max(g_1,g_2))$
-3. $f_1=O(g_1) \land f_2=O(g_2) \implies f_1\cdot f_2=O(g_1\cdot g_2)$
+
 
 上述命题的证明:
 1. $f=O(g) \iff \exists c>0, \exists N, \forall n\geq N, f(n)\leq c\cdot g(n) \iff \exists k>0, \exists N, \forall n\geq N, (k\cdot f)(n)\leq (k\cdot c)\cdot g(n) \iff k\cdot f=O(g)$
