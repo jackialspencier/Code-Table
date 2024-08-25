@@ -238,6 +238,7 @@ $\Epsilon(q_2)=\{q_2,q_3\}$
 
 ![image-2.png](https://s2.loli.net/2024/03/18/zB9VYxsipX2ZoRl.png =400x)
 
+![image.png](https://s2.loli.net/2024/04/13/qo17OZVP4AzwXmD.png =400x)
 
 
 <br><br>
