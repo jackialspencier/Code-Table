@@ -169,3 +169,191 @@ print("初值问题的解为：{}".format(dsolve(eq1, y(x), isc = {y(0):1,
 y2 = dsolve(eq2, y(x), isc = {y(0):1, y(2):0})
 print("初值问题的解为：{}".format(y2))
 ```
+
+## 3.5 高等数学问题的数值解
+### 3.5.1 泰勒级数与数值导数
+#### 1.泰勒级数
+``` py
+# 程序文件Pex3_16.py
+import numpy as np
+import matplotlib.pylot as plt
+def fac(n): return (1 if n<1 else n*fac(n-1))
+def item(n, x): return (-1)**n*x**(2*n+1)/fac(2*n+1)
+def mysin(n, x): return (0 if n < 0 else mysin(n-1,x)+item(n,x)) # 自定义函数mysin得到mysin(自变量，级数)泰勒展开式
+x = np.linspace(-2*np.pi, 2*np.pi, 101)
+plt.plot(x, np.sin(x), '*-')
+str = ['v-', 'H--', '-.']
+for n in [1, 2, 3]: plt.plot(x, mysin(2*n-1, x), str[n-1])
+plt.legend(['sin', 'n=1', 'n=3', 'n=5'])
+plt.savefig('figure3_16.png', dpi = 500)
+plt.show()
+```
+
+#### 2.数值导数
+- 一阶导数一阶精度
+- 一阶导数二阶精度
+- 二阶导数估计式
+``` py
+import numpy as np, numpy.linalg as ng
+import matplotlib.pylot as plt
+N = 4; v = 1.0; d = 200.0; time = 400.0; divs = 201
+xy = np.array([[-d, d], [d, d], [d, -d], [-d, -d]])
+T = np.linspace(0, time, divs)
+xyn = np.empty((4, 2))
+Txy = xy
+for n in range(1, len(T)):
+     for i in [0, 1, 2, 3]:
+          j = (i+1)%4; dxy = xy[j] - xy[i]
+          dd = dxy/ng.norm(dxy)    # 单位化向量
+          xyn[i] = xy[i] + v*dt*dd # 计算下一步的位置
+     Txy = np.c_[Txy, xyn]
+     xy = xyn.copy()
+for i in range(N): plt.plot(Txy[i, ::2], Txy[i, 1::2])
+plt.savefig("figure3_17.png", dpi=500); plt.show()
+```
+
+### 3.5.2 数值积分
+#### 1. 一重积分
+- 梯形公式
+- 辛普森计算公式
+- quad函数
+``` py
+# 程序文件Pex3_18.py
+import numpy as np
+from scipy.integrate import quad
+def trapezoid(f, n, a, b):
+     xi = np.linspace(a, b, n); h = (b-a)/(n-1)
+     return h*( sum(f(xi)) - (f(a)+f(b))/2 )
+def simpson(f, n, a, b):
+     xi, h = np.linspace(a, b, 2*n+1), (b-a)/(2.0*n)
+     xe = [f(xi[i]) for i in range(len(xi)) if i % 2 == 0]
+     xo = [f(xi[i]) for i in range(len(xi)) if i % 2 != 0]
+     return h*(2*np.sum(xe) + 4*np.sum(xo) - f(a) - f(b))/3.0
+a = 0; b = 1; n = 1000
+f = lambda x: np.sin(np.sqrt(np.cos(x)+x**2))
+print("梯形积分I1 = ", trapezoid(f, n, a, b))
+print("辛普森积分I2 = ", simpson(f, n, a, b))
+print("Scipy积分I3 = ", quad(f, a, b))
+```
+
+#### 2. 多重积分
+调用SciPy库中的函数直接求数值解，**dblquad, tplquad**
+- 被积函数格式func(y, x), 最外层x积分区间[a,b], 内层y积分区间[gfun(x), hfun(x)]
+  ``` py
+  dblquad(func, a, b, gfun, hfun, args = (), epsabs = 1.49e-08, epsrel = 1.49e-08)
+  ```
+- 被积函数格式func(z, y, x), 最外层x积分区间[a,b], 中间层y积分区间[gfun(x),hfun(x)]，
+  最内层z积分区间[qfun(x,y), rfun(x,y)]
+  ``` py
+  tplquad(func, a, b, gfun, hfun, qfun, rfun,
+          args = (), epsabs = 1.49e-08, epsrel = 1.49e-08)
+  ```
+___
+例3.19
+``` py
+# 程序文件Pex3_19.py
+import numpy as np
+from scipy.integrate import dblquad
+f1 = lambda y, x: x*y**2
+print("I1 = ", dblquad(f1, 0, 2, 0, 1))
+f2 = lambda y, x: np.exp(-x**2/2) * np.sin(x**2+y)
+bd = lambda x: np.sqrt(1-x**2)
+print("I2 = ", dblquad(f2, -1, 1, lambda x: -bd(x), bd))
+```
+
+例3.20
+``` py
+# 程序文件Pex3_20.py
+import numpy as np
+from scipy.integrate import tplquad
+f = lambda z, y, x: z*np.sqrt(x**2+y**2+1)
+ybd = lambda x: np.sqrt(2*x-x**2)
+print("I = ", tplquad(f, 0, 2, lambda x: -ybd(x), ybd, 0, 6))
+```
+
+### 3.5.3 非线性方程（组）数值解
+#### 1. 二分法求根
+#### 2. 牛顿迭代法求根
+#### 3. 用SciPy工具库求解非线性方程组
+例3.21 使用二分法、牛顿迭代法、直接调用SciPy库求解
+``` py
+# 程序文件Pex3_21.py
+import numpy as np
+from scipy.optimize import fsolve
+def binary_search(f, eps, a, b):	# 二分法函数
+	c = (a+b)/2
+	while np.abs(f(c))>eps:
+		if f(a) * f(c) < 0: b = c
+		else: a = c
+		c = (a+b)/2
+	return c
+def newton_iter(f, eps, x0, dx = 1E-8)	# 牛顿迭代法函数
+	def diff(f, dx = x):	# 求数值导数函数
+		return lambda x: (f(x+dx) - f(x-dx))/(2*dx)
+	df = diff(f, dx)
+	x1 = x0 - f(x0)/df(x0)
+	while np.abs(x1-x0) >= eps:
+		x1, x0 = x1 - f(x1)/df(x1), x1
+	return x1
+f = lambda x: x**3+1.1*x**2+0..9*x-1.4
+print("二分法求得的根为：", binary_search(f, 1E-6, 0, 1))
+print("牛顿迭代法求得的根为：", newton_iter(f, 1E-6, 0))
+print("直接调用SciPy求得的根为：", fsolve(f, 0))
+```
+
+#### 4. 用fsolve求非线性方程组的数值解
+``` py
+# 程序文件Pex3_22_1.py
+from numpy import sin
+from scipy.optimize import fsolve
+f = lambda x: [5*x[1]+3, 4*x[0]**2-2*sin(x[1]*x[2]), x[1]*x[2]-1.5]
+print("result = ", fsolve(f, [1.0, 1.0, 1.0]))	# 第二个值是解的初始猜测
+```
+
+``` py
+# 程序文件Pex3_22_2.py
+from numpy import sin
+from scipy.optimize import fsolve
+def Pfun(x):
+	x1, x2, x3 = x.tolist()	# x转换成列表
+	return 5*x2+3, 4*x1**2-2*sin(x2*x3), x2*x3-1.5
+print("result = ", fsolve(Pfun, [1.0, 1.0, 1.0]))
+```
+
+### 3.5.4 函数极值点的数值解
+#### 1. 一元函数的极值点
+例3.23 函数在[0, 3]上的极小点
+``` py
+# 程序文件Pex3_23.py
+from numpy import exp, cos
+from scipy.optimize import fminbound
+f = lambda x: exp(x)*cos(2*x)
+x0 = fminbound(f, 0, 3)
+print("极小点为:{},极小值为{}".format(x0, f(x0)))
+```
+例3.24 函数在0附近的一个极小点
+``` py
+# 程序文件Pex3_24.py
+from numpy import exp, cos
+from scipy.optimize import fminbound
+f = lambda x: exp(x)*cos(2*x)
+x0 = fmin(f, 0)
+print("极小点为:{}, 极小值为{}".format(x0, f(x0)))
+```
+
+#### 2. 多元函数的极值点
+例3.25 二元函数的极小值
+``` py
+from scipy.optimize import minimize
+f = lambda x: 100*(x[1]-x[0]**2)*2 + (1-x[0])**2
+x0 = minimize(f, [2.0, 2.0, 2.0])
+print("极小点为{}, 极小值为{}".format(x0.x, x0.fun))
+```
+
+## 3.6 线性代数问题的符号和数值解
+行列式求值,特殊矩阵构建,求特征值特征向量,转置和逆阵,删除行列,基本算术运算
+### 3.6.1 线性代数问题的符号解
+#### 1. 矩阵的运算
+
+### 3.6.2 线性代数问题的数值解
+### 3.6.2 求超定线性方程组的最小二乘解
